@@ -74,10 +74,20 @@ const char mdm_cnct_ok[]		PROGMEM = { "CONNECT OK" };
 const char mdm_cnct_fail[]		PROGMEM = { "CONNECT FAIL" };
 const char mdm_arrow[]			PROGMEM = { ">" };
 const char mdm_send_ok[]		PROGMEM = { "SEND OK" };
-const char mdm_close_ok[]		PROGMEM = { "CLOSE OK" };
+const char mdm_close_ok[]		PROGMEM = { "CLOSE OK"};
+const char mdm_sms_list[]		PROGMEM = { "+CMGL:"};
 
 const char tmpl_sms[]			PROGMEM = { "+CMTI:" };
 const char tmpl_tcp[]			PROGMEM = { "+CIPRXGET:" };
+
+const char rest_h1[]			PROGMEM = { "GET /entry/ " };
+const char rest_h2[]			PROGMEM = { " HTTP/1.1\r\n" };
+const char rest_h3[]			PROGMEM = { "Host:ardu.damasarent.com\r\n" };
+const char rest_h4[]			PROGMEM = { "User-Agent:ARDU\r\n" };
+const char rest_h5[]			PROGMEM = { "Accept:text/html\r\n" };
+const char rest_h6[]			PROGMEM = { "Connection:close\r\n" };
+const char rest_h7[]			PROGMEM = { "\r\n" };
+const char comma[]				PROGMEM = { "," };
 
 class SSR
 {
