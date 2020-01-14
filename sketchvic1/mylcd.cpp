@@ -268,30 +268,36 @@ size_t MYLCD::write(const uint8_t *buffer, size_t size)
 
 void MYLCD::Init()
 {
-  init(); // Инициализируем экран
-  backlight(); //включаем подсветку
-  setCursor(0, 0); //Устанавливаем позицию начиная с которой выводится текст.
-  print("DISPLAY INIT"); //выводим строку 1
+	init(); // Инициализируем экран
+	backlight(); //включаем подсветку
+	setCursor(0, 0); //Устанавливаем позицию начиная с которой выводится текст.
+	print("DISPLAY INIT"); //выводим строку 1
 #ifdef _TRACE
-  Serial.println(F("display init"));
+	Serial.println(F("display init"));
 #endif
 }
-//выводит на дисплей информационное состояние показателей системы
-void MYLCD::Status(double boxtemp, double roomtemp, boolean hollflag, boolean wtrflag, boolean irrflag, boolean htrflag, boolean gsmflag)
+/**
+выводит на дисплей информационное состояние показателей системы
+*/
+void MYLCD::Status(double roomtemp, boolean wtrflag, boolean htrflag, boolean gsmflag, int maxroomt, int deltat)
 {
-  setCursor(0, 0); // устанавливаем курсор в начало дисплея
-  setCursor(0, 0);
-  print(F("TR  "));
-  print(roomtemp);
-  print(F("       "));
+	setCursor(0, 0); // устанавливаем курсор в начало дисплея
+	//setCursor(0, 0);
+	print(F("TR="));
+	print(roomtemp);
+	print(F(" MT="));
+	print(maxroomt);
+	print(F(" DT="));
+	print(deltat);
+	print(F(" "));
 
-  setCursor(0, 1);
-  print(F("WT"));
-  print(wtrflag ? F("+") : F("_"));
-  print(F("HT"));
-  print(htrflag ? F("+") : F("_"));
-  print(F("GSM"));
-  print(gsmflag ? F("+") : F("_"));
+	setCursor(0, 1);//устанавливаем курсор на вторую строку дисплея
+	print(F("WT"));
+	print(wtrflag ? F("+") : F("_"));
+	print(F("HT"));
+	print(htrflag ? F("+") : F("_"));
+	print(F("GSM"));
+	print(gsmflag ? F("+") : F("_"));
 }
 void MYLCD::gsmInit()
 {
@@ -310,6 +316,43 @@ void MYLCD::gsmInitSMS()
   print(F("GSM INIT"));
   setCursor(0, 1);
   print(F("SMS INIT SEND"));
-  Serial.println(F("\nLCD DOne"));
+  //Serial.println(F("\nLCD DOne"));
 }
-
+void MYLCD::clearStr(int n) {
+	setCursor(0, n);//устанавливаем курсор на вторую строку дисплея
+	for (int i = 0; i < 20; i++) write(' ');
+}
+void MYLCD::log(const __FlashStringHelper * ifsh)
+{
+	clearStr(3);
+	setCursor(0, 3);
+	PGM_P p = reinterpret_cast<PGM_P>(ifsh);
+	size_t n = 0;
+	while (1) {
+		unsigned char c = pgm_read_byte(p++);
+		if (c == 0) break;
+		if (write(c)) n++;
+		else break;
+		if (n >= 20) break;
+	}
+}
+void MYLCD::log(int n, int base)
+{
+	clearStr(3);
+	setCursor(0, 3);//устанавливаем курсор на вторую строку дисплея
+	print(n, base);
+}
+void MYLCD::log(const char str[])
+{
+	clearStr(3); 
+	const char *p = str;;
+	int i = 0;
+	setCursor(0, 3);//устанавливаем курсор на вторую строку дисплея
+	while ((*p != '\0') && (i < 20)) { // пока значение в строке не стало 0 или на экран не вывели 20 символов
+		if ((*p != '\r') && (*p != '\n')) { //если строка не перевод или возврат то символ выводим иначе не выводим
+			i++;
+			write(*p);			
+		}
+		p++;
+	}
+}

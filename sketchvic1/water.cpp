@@ -4,7 +4,7 @@ void Water::setCommand(int command)
 {
   water_command = command;
 }
-void Water::checkWater() // включение и отключение автополива
+void Water::checkWater() // РІРєР»СЋС‡РµРЅРёРµ Рё РѕС‚РєР»СЋС‡РµРЅРёРµ Р°РІС‚РѕРїРѕР»РёРІР°
 {
 	if (water_started) 
 	{
