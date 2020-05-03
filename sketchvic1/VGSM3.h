@@ -60,6 +60,7 @@ public:
 	void StatusChr(double roomtemp, boolean wtrflag, boolean htrflag, int free_ram);
 	boolean ConvertTempChr(char * command, int &t);
 	boolean TCPSendData2(double roomtemp, boolean htrflag, Heater &htr, boolean hf);
+	boolean HardSocketReset();
 	boolean ParseTemplateChr(int &from_last, const char *tmpl, const char *delim, char *s, int size_s, const char *empty = NULL);
 	void DeleteAllSMS();
 	boolean SetDeltaTemp(Heater& htr, boolean delta, boolean& hf);
