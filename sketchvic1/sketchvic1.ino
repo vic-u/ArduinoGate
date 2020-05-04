@@ -86,7 +86,7 @@ void loop() {
 	htr.setRoomTemp(htr.getRoomTemp()); //передаем обогревателю данные с датчика
 #pragma endregion
 #pragma region CHECK MODEM ABILITY
-	if (vgsm3.SendATcommand4(F("AT"), mdm_ok, mdm_ok, WT4) != 1) {//отправляем в модем АТ команду и читаем текущий буфер. В этот момент может прийти команда смс
+	if (vgsm3.SendATcommand4(F("AT"), mdm_ok, mdm_ok, WT5) != 1) {//отправляем в модем АТ команду и читаем текущий буфер. В этот момент может прийти команда смс
 #ifdef _TRACE
 		Serial.println(F("No AT. Reset"));
 		lcd.log(F("No AT. Reset"));

@@ -96,7 +96,7 @@ void VGSM3::SMSDelete(int index) {
 	//sprintf_P(aux_str, PSTR("AT+CMGD=%d,0\0"), index);
 	sprintf_P(aux_str, fmt_sms_del, index);
 	//if (SendATcommand4Str(aux_str, mdm_ok, mdm_error, WT4) != 1) return;
-	SendATcommand4Str(aux_str, mdm_ok, mdm_error, WT4); //посылаем команду на удаление конкретного сообщения
+	SendATcommand4Str(aux_str, mdm_ok, mdm_error, WT5); //посылаем команду на удаление конкретного сообщения
 	//memset(serial_buff, '\0', sizeof(serial_buff));
 	//sprintf_P(serial_buff, PSTR("AT+CMGD=%d,0\0"), index);
 	////sprintf(aux_str, "AT+CMGD=%d,0\0", index);
@@ -106,7 +106,7 @@ void VGSM3::SMSDelete(int index) {
 удаляем из памяти модем сообщения, чтобы не парсить всякое барахло
 */
 void VGSM3::DeleteAllSMS() {
-	SendATcommand4(F("AT+CPMS= \"MT\""), mdm_ok, mdm_error, WT4); //выбираем хранилище
+	SendATcommand4(F("AT+CPMS= \"MT\""), mdm_ok, mdm_error, WT5); //выбираем хранилище
 	for (int i = 1; i <= SMS_COUNT; i++) SMSDelete(i); // удаляем сообщения 
 }
 /**
@@ -124,7 +124,7 @@ boolean VGSM3::WaitResponse_P(const __FlashStringHelper * commandAT, const char*
 	//Serial.println("-----waitresp-------");
 	//Serial.println(commandAT);
 	//command может скосячить, так как он стат памяти
-	while ((SendATcommand4(commandAT, expected_answer1, expected_answer2, WT4) == 0)) {
+	while ((SendATcommand4(commandAT, expected_answer1, expected_answer2, WT5) == 0)) {
 		if (i >= (12 * 3)) {
 			return false; // но не более трех минут 5 секунд ждем в цикле чтения 12 раз в минуту, 
 		//иначе принудительно на выход
@@ -207,9 +207,9 @@ boolean VGSM3::InitGSM() {
 	//WaitResponse_P(NULL, mdm_call_ready); // проверить обязательно!!!!!!!
 	// здесь надо добавить ожидания до call ready
 	//Serial.print(F("MT"));
-	if (SendATcommand4(F("AT"), mdm_ok, mdm_error, WT4) != 1) return false;//первая команда в модем, для проверки, что оклемался после 
+	if (SendATcommand4(F("AT"), mdm_ok, mdm_error, WT5) != 1) return false;//первая команда в модем, для проверки, что оклемался после 
 	//перезагрузки// ждем 10 секунд чтобы все строки модем выдал в буфер
-	if (SendATcommand4(F("AT+CPMS= \"MT\""), mdm_ok, mdm_error, WT4) != 1) return false; // переключаем хранилище смс на сим карту и телефон
+	if (SendATcommand4(F("AT+CPMS= \"MT\""), mdm_ok, mdm_error, WT5) != 1) return false; // переключаем хранилище смс на сим карту и телефон
 	DeleteAllSMS();
 	return true;
 }
@@ -256,16 +256,16 @@ boolean VGSM3::SMSCheckNewMsg() {
 	}*/
 
 	//переделать на удаление приошибке, может при приходе русских сообщение выдается ошибка, тогда при выходе, надо еще и удалить сообщения
-	if (SendATcommand4(F("AT+CMGF=1"), mdm_ok, mdm_error, WT4) != 1) return false; //переводим модем в текстовый режим
+	if (SendATcommand4(F("AT+CMGF=1"), mdm_ok, mdm_error, WT5) != 1) return false; //переводим модем в текстовый режим
 #ifdef _TRACE
 	//Serial.println(serial_buff);
 #endif
-	if (SendATcommand4(F("AT+CPMS= \"MT\""), mdm_ok, mdm_error, WT4) != 1) return false; //выбираем хранилище
+	if (SendATcommand4(F("AT+CPMS= \"MT\""), mdm_ok, mdm_error, WT5) != 1) return false; //выбираем хранилище
 //#ifdef _TRACE
 	//Serial.println(serial_buff);
 	//Serial.println("6");
 //#endif
-	if (SendATcommand4(F("AT+CMGL=\"ALL\""), mdm_ok, mdm_error, WT4) != 1) {//прочитаем все сообщения из модема и если переполнится то получим 0
+	if (SendATcommand4(F("AT+CMGL=\"ALL\""), mdm_ok, mdm_error, WT5) != 1) {//прочитаем все сообщения из модема и если переполнится то получим 0
 		DeleteAllSMS();//когда придет большое сообщение на русском, оно переполнит будер и мы считаем только часть сообщения без OK и ERR и вернет 0, вот его мы и удалим
 		return false; //выходим после удаления всякой хрени
 	}
@@ -333,33 +333,37 @@ boolean VGSM3::InitGPRS() {
 	// http://badembed.ru/sim900-tcp-soedinenie-s-serverom/
 	//в случае ошибки на одно из этапов, уходим в перезагрузку 
 	// Selects Single-connection mode
-	if (SendATcommand4(F("AT+CREG?"), mdm_ok, mdm_error, WT4) != 1) return false;//проверяем регистрацию в сети
-	if (SendATcommand4(F("AT+CGATT=1"), mdm_ok, mdm_error, WT4) != 1) return false;//подключаем модуль к GPRS сети
-	if (SendATcommand4(F("AT+CIPSHUT"), mdm_ok, mdm_error, WT4) != 1) 
-		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) return false; //подждем еще 
+	if (SendATcommand4(F("AT+CREG?"), mdm_ok, mdm_error, WT5) != 1) return false;//проверяем регистрацию в сети
+	if (SendATcommand4(F("AT+CGATT=1"), mdm_ok, mdm_error, WT5) != 1) 
+		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) return HardSocketReset();//подключаем модуль к GPRS сети
+	if (SendATcommand4(F("AT+CIPSHUT"), mdm_ok, mdm_error, WT5) != 1) 
+		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) return HardSocketReset(); //подждем еще 
 
-	SendATcommand4(F("AT+CIPMODE?"), mdm_ok, mdm_error, WT4);
+	SendATcommand4(F("AT+CIPMODE?"), mdm_ok, mdm_error, WT5);
 	//if (SendATcommand4(F("AT+CIPMODE=0"), mdm_ok, mdm_error, WT4) != 1) return false;//переводим в командный режим может не работать для sim 800
 
-	if (SendATcommand4(F("AT+CIPMUX=0"), mdm_ok, mdm_error, WT4) != 1) return false;//настройка на соединение только с одним сервером
-	if (SendATcommand4(F("AT+CIPRXGET=1"), mdm_ok, mdm_error, WT4) != 1) return false;//получение ответа от сервера вручную
+	if (SendATcommand4(F("AT+CIPMUX=0"), mdm_ok, mdm_error, WT5) != 1) return false;//настройка на соединение только с одним сервером
+	if (SendATcommand4(F("AT+CIPRXGET=1"), mdm_ok, mdm_error, WT5) != 1) return false;//получение ответа от сервера вручную
 	// Waits for status IP INITIAL
 	//while (SendATcommand4(F("AT+CIPSTATUS"), mdm_initial, mdm_empty, 5000) == 0);?????
 	//delay(5000);
 	// Sets the APN, user name and password CSTT
-	if (SendATcommand4(F(command_APN), mdm_ok, mdm_error, WT4) != 1) return false;//подключение модема к сотовому оператору
+	if (SendATcommand4(F(command_APN), mdm_ok, mdm_error, WT5) != 1) 
+		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) return HardSocketReset();//подключение модема к сотовому оператору
 	// Waits for status IP START
 	//while (SendATcommand4(F("AT+CIPSTATUS"), mdm_start, mdm_empty, 5000) == 0);//получение статуса инициализации стека tcp/ip STATE:IP START
 	if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_start, mdm_start)) return false;
 	// Brings Up Wireless Connection
-	if (SendATcommand4(F("AT+CIICR"), mdm_ok, mdm_error, WT4) != 1) 
-		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) return false; //подждем еще return false;//включаем GPRS связь с настройками выше
+	if (SendATcommand4(F("AT+CIICR"), mdm_ok, mdm_error, WT5) != 1) 
+		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) 
+			if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) 
+				return HardSocketReset(); //подждем еще return false;//включаем GPRS связь с настройками выше
 	
 	// Waits for status IP GPRSACT
 	//while (SendATcommand4(F("AT+CIPSTATUS"), mdm_gprsact, mdm_empty, 5000) == 0);//получение статуса инициализации связи gprs STATE:IP GPRSACT
 	if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_gprsact, mdm_gprsact)) return false;
 	// Gets Local IP Address
-	if (SendATcommand4(F("AT+CIFSR"), mdm_ip_ok, mdm_error, WT4) != 1) return false;//получаем ip адрес
+	if (SendATcommand4(F("AT+CIFSR"), mdm_ip_ok, mdm_error, WT5) != 1) return false;//получаем ip адрес
 	// Waits for status IP STATUS
 	//while (SendATcommand4(F("AT+CIPSTATUS"), mdm_ip_status, mdm_empty, 5000) == 0);//дожидаемся статуса полной инициализации TCP 
 	if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_ip_status, mdm_ip_status)) return false;
@@ -392,7 +396,7 @@ htr - объект отопления
 boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, boolean hf)
 {
 	//// Gets Local IP Address
-	if (SendATcommand4(F("AT+CIFSR"), mdm_ip_ok, mdm_error, WT4) != 1) {
+	if (SendATcommand4(F("AT+CIFSR"), mdm_ip_ok, mdm_error, WT5) != 1) {
 		return HardSocketReset(); //проверяем наличие ip адреса
 	}
 	if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_ip_status, mdm_cnct_ok)) {
@@ -407,7 +411,7 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	SendATcommand4("AT+CIPQSEND?", mdm_ok, mdm_error, 5000);
 	SendATcommand4("AT+CIPRXGET=?", mdm_ok, mdm_error, 5000);
 	SendATcommand4("AT+CIPRXGET?", mdm_ok, mdm_error, 5000);*/
-	if (SendATcommand4(F(data_ip_protocol), mdm_cnct_ok, mdm_already_cnct, WT4) == 0) {//попробуем соединиться с сервером
+	if (SendATcommand4(F(data_ip_protocol), mdm_cnct_ok, mdm_already_cnct, WT5) == 0) {//попробуем соединиться с сервером
 		//подождем еще
 		//if (!WaitResponse_P(NULL, mdm_already_cnct))
 		if (!WaitResponse_P(NULL, mdm_cnct_ok, mdm_already_cnct)) return false;
@@ -460,12 +464,12 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	memset(aux_str, '\0', sizeof(aux_str));
 	sprintf(aux_str, "AT+CIPSEND=%d", strlen(out_msg_buff));  //Указываем модулю число  байт равное  длине данных в  буфера  out_msg_buff
 	//sprintf(aux_str, "AT+CIPSEND");
-	if (SendATcommand4Str(aux_str, angbr, mdm_error, WT4) != 1) {//если не получили приглашение ">"  
+	if (SendATcommand4Str(aux_str, angbr, mdm_error, WT5) != 1) {//если не получили приглашение ">"  
 		if (!WaitResponse_P(NULL, angbr, angbr)) { //подождем пришлашение еще надо получить приглашалку >			
 			return HardSocketReset();
 		}
 	}
-	if (SendATcommand4Str(out_msg_buff, mdm_send_ok, mdm_error, WT4) != 1) {//Если всё прошло нормально, то в ответ получим "SEND OK" передаём buf_ip_data в порт. 
+	if (SendATcommand4Str(out_msg_buff, mdm_send_ok, mdm_error, WT5) != 1) {//Если всё прошло нормально, то в ответ получим "SEND OK" передаём buf_ip_data в порт. 
 		if (!WaitResponse_P(NULL, mdm_send_ok, mdm_send_ok)) {//подждем еще подтверждение отправки
 			return HardSocketReset();
 		}
@@ -473,7 +477,7 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	chf = false; //сбрасываем флаг, который передавали в случае прихода команды по смс
 	//тут надо посмотреть ответ от сервера, может надо включить обогрев
 	//???????????????? надо читать по двести в цикле три раза, потому что из серийного порта больше 256 не приходит+ заголовок команды 50 символол, поэтому не влезает
-	if (SendATcommand4Str("AT+CIPRXGET=2,256", mdm_ok, mdm_error, WT4, WT4) != 1) {//читаем ответ сервера он большой
+	if (SendATcommand4Str("AT+CIPRXGET=2,256", mdm_ok, mdm_error, WT5, WT5) != 1) {//читаем ответ сервера он большой
 		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) { //подждем еще чтение, вдруг долго
 			return HardSocketReset();
 		}
@@ -482,7 +486,7 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	Serial.println("------1-");
 	Serial.println(serial_buff);
 #endif
-	if (SendATcommand4Str("AT+CIPRXGET=2,256", mdm_ok, mdm_error, WT4, WT4) != 1) {//читаем вторую часть
+	if (SendATcommand4Str("AT+CIPRXGET=2,256", mdm_ok, mdm_error, WT5, WT5) != 1) {//читаем вторую часть
 		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) { //подждем еще чтение, вдруг долго
 			return HardSocketReset();
 		}
@@ -495,7 +499,7 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	return true;
 }
 boolean VGSM3::HardSocketReset() {
-	SendATcommand4(F("AT+CIPCLOSE=1"), mdm_close_ok, mdm_error, WT4); //не удалось отправить
+	SendATcommand4(F("AT+CIPCLOSE=1"), mdm_close_ok, mdm_error, WT5); //не удалось отправить
 	return false;
 }
 /**
@@ -723,7 +727,7 @@ void VGSM3::SendSMSChr(char text[], char phone[]) {
 #ifdef _TRACE
 	Serial.println(F("Send sms char"));
 #endif
-	if (SendATcommand4(F("AT+CMGF=1"), mdm_ok, mdm_error, WT4) != 1) return;//переводим модем на отправку в текстовом режиме
+	if (SendATcommand4(F("AT+CMGF=1"), mdm_ok, mdm_error, WT5) != 1) return;//переводим модем на отправку в текстовом режиме
 #ifdef _TRACE
 	Serial.print(">cmgf>");
 	Serial.println(serial_buff);
@@ -731,10 +735,10 @@ void VGSM3::SendSMSChr(char text[], char phone[]) {
 	memset(aux_str, '\0', sizeof(aux_str)); //обнулим буфер отправки
 	sprintf_P(aux_str, fmt_sms_phone_send, phone);//отправим номер телефона в модем
 	//sprintf_P(aux_str, PSTR("AT+CMGS=\"%s\""), phone);
-	if (SendATcommand4Str(aux_str, angbr, mdm_error, WT4) != 1) //отправляем номер телефона и ждем приглашение для отправки текста  
+	if (SendATcommand4Str(aux_str, angbr, mdm_error, WT5) != 1) //отправляем номер телефона и ждем приглашение для отправки текста  
 		if (!WaitResponse_P(NULL, angbr, angbr)) return; //надо получить приглашалку >
 	//if (SendATcommand4Str(text, angbr, mdm_error, 10000) != 1) return;
-	if (SendATcommand4Str(text, mdm_sms_send, mdm_error, WT4) != 1)//подождем ответа от модема, что смс успешно ушла
+	if (SendATcommand4Str(text, mdm_sms_send, mdm_error, WT5) != 1)//подождем ответа от модема, что смс успешно ушла
 		WaitResponse_P(NULL, mdm_sms_send, mdm_sms_send); //подождем ответа от модема, что смс успешно ушла
 	//GSMport.write(0x1A); // окончание строки и перевод каретки
 						 //GSMport.write(0x0D);
