@@ -399,9 +399,9 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	if (SendATcommand4(F("AT+CIFSR"), mdm_ip_ok, mdm_error, WT5) != 1) {
 		return HardSocketReset(); //проверяем наличие ip адреса
 	}
-	if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_ip_status, mdm_cnct_ok)) {
-		return HardSocketReset();
-	}
+	//if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_ip_status, mdm_cnct_ok)) {
+	//	return HardSocketReset();
+	//}
 	// Waits for status IP STATUS
 	//while (SendATcommand4(F("AT+CIPSTATUS"), mdm_ip_status, mdm_empty, 5000) == 0);
 	//if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_ip_status)) return false;
@@ -477,7 +477,7 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	chf = false; //сбрасываем флаг, который передавали в случае прихода команды по смс
 	//тут надо посмотреть ответ от сервера, может надо включить обогрев
 	//???????????????? надо читать по двести в цикле три раза, потому что из серийного порта больше 256 не приходит+ заголовок команды 50 символол, поэтому не влезает
-	if (SendATcommand4Str("AT+CIPRXGET=2,256", mdm_ok, mdm_error, WT5, WT5) != 1) {//читаем ответ сервера он большой
+	if (SendATcommand4Str("AT+CIPRXGET=2,200", mdm_ok, mdm_error, 3000, 500) != 1) {//читаем ответ сервера он большой
 		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) { //подждем еще чтение, вдруг долго
 			return HardSocketReset();
 		}
@@ -486,7 +486,7 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	Serial.println("------1-");
 	Serial.println(serial_buff);
 #endif
-	if (SendATcommand4Str("AT+CIPRXGET=2,256", mdm_ok, mdm_error, WT5, WT5) != 1) {//читаем вторую часть
+	if (SendATcommand4Str("AT+CIPRXGET=2,200", mdm_ok, mdm_error, 3000, 500) != 1) {//читаем вторую часть
 		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) { //подждем еще чтение, вдруг долго
 			return HardSocketReset();
 		}
@@ -495,6 +495,24 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	Serial.println("------2-");
 	Serial.println(serial_buff);
 #endif
+//if (SendATcommand4Str("AT+CIPRXGET=2,100", mdm_ok, mdm_error, WT5, WT5) != 1) {//читаем вторую часть
+//    if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) { //подждем еще чтение, вдруг долго
+//      return HardSocketReset();
+//    }
+//  }
+//  #ifdef _TRACE
+//  Serial.println("------3-");
+//  Serial.println(serial_buff);
+//#endif
+//if (SendATcommand4Str("AT+CIPRXGET=2,100", mdm_ok, mdm_error, WT5, WT5) != 1) {//читаем ответ сервера он большой
+//    if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) { //подждем еще чтение, вдруг долго
+//      return HardSocketReset();
+//    }
+//  }
+//#ifdef _TRACE
+//  Serial.println("------4-");
+//  Serial.println(serial_buff);
+//#endif
 	TCPSocketResponse(htr); //обработаем ответ сервера
 	return true;
 }

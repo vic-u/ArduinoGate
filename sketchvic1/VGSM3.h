@@ -16,7 +16,8 @@
 //#define command_APN "AT+CSTT=\"internet.tele2.ru\",\"\",\"\""
 //#define data_ip_protocol "AT+CIPSTART=\"UDP\",\"narodmon.ru\",\"8283\""
 //#define data_ip_protocol "AT+CIPSTART=0,\"TCP\",\"narodmon.ru\",\"8283\""
-#define data_ip_protocol "AT+CIPSTART=\"TCP\",\"ardu.damasarent.com\",\"80\""
+#define data_ip_protocol "AT+CIPSTART=\"TCP\",\"194.87.144.141\",\"3000\""
+//#define data_ip_protocol "AT+CIPSTART=\"TCP\",\"ardu.damasarent.com\",\"80\""
 #define SMS_COUNT 25
 
 class VGSM3
