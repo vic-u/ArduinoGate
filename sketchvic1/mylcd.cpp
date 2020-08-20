@@ -316,7 +316,6 @@ void MYLCD::gsmInitSMS()
   print(F("GSM INIT"));
   setCursor(0, 1);
   print(F("SMS INIT SEND"));
-  //Serial.println(F("\nLCD DOne"));
 }
 void MYLCD::clearStr(int n) {
 	setCursor(0, n);//устанавливаем курсор на вторую строку дисплея

@@ -22,10 +22,6 @@ void Heater::setRoomTemp(double temp)
   room_temp = temp;
   setTempArr(room_temp); //аналоговый датчик не точный и приходится набирать 20 последних значений для средней температуры
 }
-/*void Heater::setDeltaRoomTemp(double temp)
-{
-	delta_temp = temp;
-}*/
 
 void Heater::checkHeat() // включение и отключение обогревателя
 { 
@@ -149,10 +145,5 @@ double Heater::getRoomTemp()
 	double temp = log(((10240000 / raw_adc) - 10000));
 	temp = 1 / (0.001129148 + (0.000234125 * temp) + (0.0000000876741 * temp * temp * temp));
 	temp = temp - 273.15;
-/*#ifdef _TRACE 
-	Serial.print(F("room temp "));
-	Serial.println(raw_adc);
-	Serial.println(temp);
-#endif*/
 	return temp;
 }

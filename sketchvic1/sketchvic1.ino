@@ -15,8 +15,11 @@ v12
 	увеличен буфер для Software Serial до 128 Кб
 	выводится на дисплей дополнительная информация о макс темпе и дельта темпе
 	исправлена ошибка для дельта темпа
+v13 
+	увеличен буфер для Software Serial до 256 Кб
+	поддержа http
+v15 переделка на виртуальный хост
 */
-//#include <DHT.h>
 
 #include <Wire.h>
 #include <SoftwareSerial.h>
@@ -78,9 +81,7 @@ void setup() {
 void loop() {
 #pragma region WEEKLY REBOOT
 	//добавим общую регулярную  перезагрузку  - раз в неделю
-	//if (259200000 - long(millis()) <= 0)
-	//if ((604800000*2) - long(millis()) <= 0) {
-		if ((604800000) - long(millis()) <= 0) {
+	if ((604800000) - long(millis()) <= 0) {
 		resetFunc();
 	}
 	htr.setRoomTemp(htr.getRoomTemp()); //передаем обогревателю данные с датчика
@@ -138,5 +139,5 @@ void loop() {
 	Serial.println(ssr.freeRam());
 	lcd.log(ssr.freeRam());
 #endif
-	delay(30000); //ждем 5 секунд и делаем новый опрос -поменять на 30
+	delay(30000); //ждем 30 секунд и делаем новый опрос 
 }

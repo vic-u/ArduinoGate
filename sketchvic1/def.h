@@ -1,6 +1,8 @@
 ﻿#include <arduino.h>
 
 #ifndef VIC_DEV
+//не забыть увеличить буфферв в SoftwareSerial до 256
+//#define _SS_MAX_RX_BUFF 300
 	#define VIC_DEV
   
 	#define RC_NOTHING 0
@@ -10,10 +12,9 @@
   
 	#define MAX_LONG 0xFFFFFFFF
 	#define PHONENUM "+79160265679"
-	//#define PHONENUM2"+79850455595"
-	//#define PHONENUM2"+79262107898"	
+	
 //отправка данных через смс и отправка данных через интернет
-	#define VER		14
+	#define VER		15
 	#define WT5		5000 //время чтения из сериального порта по-умолчанию
 	#define SSR_1	7
 	#define SSR_2	5
@@ -24,8 +25,6 @@
  
   
 	#define MAXROOMTEMP  25 // максимальная температура в комнате
-	//#define HIGHBOXTEMP  40 //максимальная темппература в корпусе, после которой 
-	//включается вентилятор охлаждения
 	#define DELTATEMP 2 //гестерезис температуры
 	#define MAC_ADDRESS "26FD52AD4E93"
 	#define DEVICENAME	"=o1s1="
@@ -73,19 +72,16 @@ const char mdm_initial[]		PROGMEM = { "INITIAL" };
 const char mdm_empty[]		    PROGMEM = { "" };
 const char mdm_start[]		    PROGMEM = { "START" };
 const char mdm_ntw_reg_1[]		PROGMEM = { "+CREG:0,1" };
-//const char mdm_ntw_reg_5[]		PROGMEM = { "+CREG:0,5" };
 const char mdm_gprsact[]		PROGMEM = { "GPRSACT" };
 const char mdm_ip_status[]		PROGMEM = { "IP STATUS" };
 const char mdm_cnct_ok[]		PROGMEM = { "CONNECT OK" };
 const char mdm_already_cnct[]   PROGMEM = { "ALREADY CONNECT" };
 const char mdm_closed[]			PROGMEM = { "CLOSED" };
 const char mdm_cnct_fail[]		PROGMEM = { "CONNECT FAIL" };
-//const char mdm_arrow[]			PROGMEM = { ">" };
 const char mdm_send_ok[]		PROGMEM = { "SEND OK" };
 const char mdm_close_ok[]		PROGMEM = { "CLOSE OK"};
 const char mdm_sms_list[]		PROGMEM = { "+CMGL:"};
 const char mdm_sms_send[]		PROGMEM = { "+CMGS:" };
-//const char mdm_ready[]			PROGMEM = { "SMSREADY" }; 
 const char mdm_call_ready[]    PROGMEM = { "CALL READY" };
 const char tmpl_sms[]			PROGMEM = { "+CMTI:" };
 const char tmpl_tcp[]			PROGMEM = { "+CIPRXGET:" };
@@ -110,24 +106,12 @@ const char fmt_sms_temp_send[]  PROGMEM = { "%S%d%c" };
 const char fmt_sms_sts_send[]  PROGMEM = { "%S%s%S%S%S%S%S%S%S%S%d%S%d%c" };
 const char fmt_http_sts_send[]  PROGMEM = { "%S%s%s%s%s%s%s%s%s%S%S%S%S%S%S" };
 
-//class IEvent
-//{
-//public:
-//	virtual void gsmInit() = 0;
-//};
 /**
 итерфейс любово обогревательного устройства
 */
 class SSR
 {
 public:
-  //SSR(){};
-  //~SSR(){};
-  //void Init(){};
-  //void On()
-  //{
-    
-  //};
   /**
   Выключает все датчики 
   */

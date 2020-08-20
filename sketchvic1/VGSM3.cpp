@@ -4,13 +4,7 @@
    и вызывает функцию отрисовки на LCD экране
 */
 void VGSM3::Init(MYLCD &lcd) {
-/*#ifdef _TRACE
-	Serial.println(F("InitGSM"));
-#endif*/
 	GSMport.begin(9600); //открываем порт модема на скорости 9600
-/*#ifdef _TRACE
-	Serial.println(F("InitGSM"));
-#endif*/
 	lcd.gsmInit();
 	_lcd = &lcd;
 }
@@ -62,8 +56,6 @@ int8_t VGSM3::ReadBuffer(const char* expected_answer1, const char* expected_answ
 	Serial.println(F("-sendAT->"));
 	Serial.println(serial_buff);
 	_lcd->log(serial_buff);
-	//Serial.println((const __FlashStringHelper *)expected_answer1);
-	//Serial.println((const __FlashStringHelper *)expected_answer2);
 #endif
 	if (strstr_P(serial_buff, expected_answer1) != NULL) return 1;
 	if (strstr_P(serial_buff, expected_answer2) != NULL) return 2;
@@ -92,15 +84,8 @@ void VGSM3::DeleteSpaceAndUpper(char *buff)
 */
 void VGSM3::SMSDelete(int index) {
 	memset(aux_str, '\0', sizeof(aux_str));
-	//sprintf_P(aux_str, PSTR("AT+CMGD=%d,0\0"), index);
-	//sprintf_P(aux_str, PSTR("AT+CMGD=%d,0\0"), index);
 	sprintf_P(aux_str, fmt_sms_del, index);
-	//if (SendATcommand4Str(aux_str, mdm_ok, mdm_error, WT4) != 1) return;
 	SendATcommand4Str(aux_str, mdm_ok, mdm_error, WT5); //посылаем команду на удаление конкретного сообщения
-	//memset(serial_buff, '\0', sizeof(serial_buff));
-	//sprintf_P(serial_buff, PSTR("AT+CMGD=%d,0\0"), index);
-	////sprintf(aux_str, "AT+CMGD=%d,0\0", index);
-	//if (SendATcommand4_P(serial_buff, mdm_ok, mdm_error, 5000) != 1) return;
 }
 /**
 удаляем из памяти модем сообщения, чтобы не парсить всякое барахло
@@ -121,8 +106,6 @@ boolean VGSM3::WaitResponse_P(const __FlashStringHelper * commandAT, const char*
 	if ((strstr_P(serial_buff, expected_answer1) != NULL) || (strstr_P(serial_buff, expected_answer2) != NULL)) return true;
 	// в буфере нет, значит шлем формальную команду, чтобы среди ответа увидеть и нужный нам шаблон, ответа. Например, подтверждение отправки смс
 	int i = 0;
-	//Serial.println("-----waitresp-------");
-	//Serial.println(commandAT);
 	//command может скосячить, так как он стат памяти
 	while ((SendATcommand4(commandAT, expected_answer1, expected_answer2, WT5) == 0)) {
 		if (i >= (12 * 3)) {
@@ -145,11 +128,6 @@ empty - с какой позиции надо искать
 boolean VGSM3::ParseTemplateChr(int &from_last, const char *tmpl, const char *delim, char *s, int size_s, const char *empty) {
 	//ищем первое вхождение шаблона в строку
 	//если размер буфера возврата =0 или в строке нет шаблона или в строке нет разделителя, то разбирать нечего
-	/*Serial.println("--parsetemplatechr---");
-	Serial.println(serial_buff);
-	Serial.println(tmpl);
-	Serial.println(delim);
-	Serial.println(size_s);*/
 	//размер буффера для возрата результата 0 или в строке нет шаблона или в строке нет нужного разделителя, выходим 
 	if ((size_s == 0) || (strstr_P(serial_buff, tmpl) == NULL) || (strstr_P(serial_buff, delim) == NULL)) return false;
 	if ((empty != NULL) && (strstr_P(serial_buff, empty) == NULL)) return false; //проверяем наличие стартового шаблона, если он задан и его нет в строке,
@@ -198,15 +176,11 @@ boolean VGSM3::ParseTemplateChr(int &from_last, const char *tmpl, const char *de
 */
 boolean VGSM3::InitGSM() {
 #ifdef _TRACE
-	//Serial.println(F("Send Reset"));
+	Serial.println(F("Send Reset"));
 #endif
-	//delay(5000);
 	// раскомментить
 	if(SendATcommand4(F("AT+CFUN=1,1"), mdm_ok, mdm_error, 10000, 90000) != 1) return false;//команда перезагрузки модема отправляем в порт модема // ждем 10 секунд
-	//if (SendATcommand4(F("AT+CFUN=1,1"), mdm_ok, mdm_error, 2000, 10000) != 1) return false;
-	//WaitResponse_P(NULL, mdm_call_ready); // проверить обязательно!!!!!!!
 	// здесь надо добавить ожидания до call ready
-	//Serial.print(F("MT"));
 	if (SendATcommand4(F("AT"), mdm_ok, mdm_error, WT5) != 1) return false;//первая команда в модем, для проверки, что оклемался после 
 	//перезагрузки// ждем 10 секунд чтобы все строки модем выдал в буфер
 	if (SendATcommand4(F("AT+CPMS= \"MT\""), mdm_ok, mdm_error, WT5) != 1) return false; // переключаем хранилище смс на сим карту и телефон
@@ -233,38 +207,17 @@ void VGSM3::SendInitSMSChr()
 	Serial.println(out_phn_buff);
 #endif	
 	SendSMSChr(out_msg_buff, out_phn_buff);
-	//while ((strstr_P(serial_buff, mdm_sms_send) == NULL) && (SendATcommand4_P(F("AT"), mdm_sms_send, mdm_error, 5000) != 1));
-	//delay(2000);
-	//WaitResponse_P(NULL, mdm_sms_send); //подождем ответа от модема, что смс успешно ушла
 }
 /**
 функция проверяет наличие непрочитанных сообщений в модеме UNREAD
 */
 boolean VGSM3::SMSCheckNewMsg() {
-	//Serial.println("5.1");
-	/* надо отключить эту часть, она только для проверки PDU режима
-	SendATcommand4(F("AT+CPMS= \"MT\""), mdm_ok, mdm_error, 5000); //указываем откуда будем читать из памяти модема
-	if (SendATcommand4(F("AT+CMGF=0"), mdm_ok, mdm_error, WT4) == 1) {//переходим в пду  режим
-		if (SendATcommand4(F("AT+CMGL=4"), mdm_ok, mdm_error, WT4) == 1) {//читаем все сообщения из памяти
-			if (strstr_P(serial_buff, comma) != NULL) {
-#ifdef _TRACE
-				Serial.println("FIND PDU");
-				Serial.println(serial_buff);
-#endif
-			}
-		}
-	}*/
-
 	//переделать на удаление приошибке, может при приходе русских сообщение выдается ошибка, тогда при выходе, надо еще и удалить сообщения
 	if (SendATcommand4(F("AT+CMGF=1"), mdm_ok, mdm_error, WT5) != 1) return false; //переводим модем в текстовый режим
 #ifdef _TRACE
 	//Serial.println(serial_buff);
 #endif
 	if (SendATcommand4(F("AT+CPMS= \"MT\""), mdm_ok, mdm_error, WT5) != 1) return false; //выбираем хранилище
-//#ifdef _TRACE
-	//Serial.println(serial_buff);
-	//Serial.println("6");
-//#endif
 	if (SendATcommand4(F("AT+CMGL=\"ALL\""), mdm_ok, mdm_error, WT5) != 1) {//прочитаем все сообщения из модема и если переполнится то получим 0
 		DeleteAllSMS();//когда придет большое сообщение на русском, оно переполнит будер и мы считаем только часть сообщения без OK и ERR и вернет 0, вот его мы и удалим
 		return false; //выходим после удаления всякой хрени
@@ -307,7 +260,6 @@ boolean VGSM3::SMSCheckNewMsg() {
 			if ((sms_index > 0) && (sms_index < 20)) { //уберем неадекватные числа
 				if (ParseTemplateChr(fl, srn_msg, srn_msg, in_msg_buff, sizeof(in_msg_buff), srn_msg)) {//выделяем 	сам текст сообщения	 от ентера до ентера						
 					DeleteAllSMS(); //удаляем все сообщения
-					//SendIndexSMSChr(sms_index);// отправляем проверочный номер смс в памяти телефона
 #ifdef _TRACE
 					Serial.println(F("find new msg"));
 					Serial.println(reply);
@@ -338,20 +290,15 @@ boolean VGSM3::InitGPRS() {
 		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) return HardSocketReset();//подключаем модуль к GPRS сети
 	if (SendATcommand4(F("AT+CIPSHUT"), mdm_ok, mdm_error, WT5) != 1) 
 		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) return HardSocketReset(); //подждем еще 
-
+	
 	SendATcommand4(F("AT+CIPMODE?"), mdm_ok, mdm_error, WT5);
-	//if (SendATcommand4(F("AT+CIPMODE=0"), mdm_ok, mdm_error, WT4) != 1) return false;//переводим в командный режим может не работать для sim 800
 
 	if (SendATcommand4(F("AT+CIPMUX=0"), mdm_ok, mdm_error, WT5) != 1) return false;//настройка на соединение только с одним сервером
 	if (SendATcommand4(F("AT+CIPRXGET=1"), mdm_ok, mdm_error, WT5) != 1) return false;//получение ответа от сервера вручную
-	// Waits for status IP INITIAL
-	//while (SendATcommand4(F("AT+CIPSTATUS"), mdm_initial, mdm_empty, 5000) == 0);?????
-	//delay(5000);
 	// Sets the APN, user name and password CSTT
 	if (SendATcommand4(F(command_APN), mdm_ok, mdm_error, WT5) != 1) 
 		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) return HardSocketReset();//подключение модема к сотовому оператору
 	// Waits for status IP START
-	//while (SendATcommand4(F("AT+CIPSTATUS"), mdm_start, mdm_empty, 5000) == 0);//получение статуса инициализации стека tcp/ip STATE:IP START
 	if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_start, mdm_start)) return false;
 	// Brings Up Wireless Connection
 	if (SendATcommand4(F("AT+CIICR"), mdm_ok, mdm_error, WT5) != 1) 
@@ -360,28 +307,13 @@ boolean VGSM3::InitGPRS() {
 				return HardSocketReset(); //подждем еще return false;//включаем GPRS связь с настройками выше
 	
 	// Waits for status IP GPRSACT
-	//while (SendATcommand4(F("AT+CIPSTATUS"), mdm_gprsact, mdm_empty, 5000) == 0);//получение статуса инициализации связи gprs STATE:IP GPRSACT
 	if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_gprsact, mdm_gprsact)) return false;
 	// Gets Local IP Address
 	if (SendATcommand4(F("AT+CIFSR"), mdm_ip_ok, mdm_error, WT5) != 1) return false;//получаем ip адрес
 	// Waits for status IP STATUS
-	//while (SendATcommand4(F("AT+CIPSTATUS"), mdm_ip_status, mdm_empty, 5000) == 0);//дожидаемся статуса полной инициализации TCP 
 	if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_ip_status, mdm_ip_status)) return false;
-	//все вайлвы переделать на WaitResponse_P
-	//delay(5000);
 #ifdef _TRACE
 	Serial.println(F("Openning TCP/UDP")); //Для удобства наладки дублируем на терминал(надо потом закоментировать)
-#endif
-	//if (SendATcommand4_P(F(data_ip_protocol), mdm_cnct_ok, mdm_cnct_fail, 1000, 30000) != 1) {
-
-	//	Serial.println(serial_buff);
-	//	/*Serial.println(F(">>"));
-	//	while (!Serial.available()) {};
-	//	Serial.read()*/;
-	//	return false;
-	//}
-#ifdef _TRACE
-	//Serial.println(F("GPRS OK"));
 #endif
 	return true;
 }
@@ -399,37 +331,13 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	if (SendATcommand4(F("AT+CIFSR"), mdm_ip_ok, mdm_error, WT5) != 1) {
 		return HardSocketReset(); //проверяем наличие ip адреса
 	}
-	//if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_ip_status, mdm_cnct_ok)) {
-	//	return HardSocketReset();
-	//}
-	// Waits for status IP STATUS
-	//while (SendATcommand4(F("AT+CIPSTATUS"), mdm_ip_status, mdm_empty, 5000) == 0);
-	//if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_ip_status)) return false;
-
-	/*SendATcommand4("AT+CMEE=2", mdm_ok, mdm_error, 5000);
-
-	SendATcommand4("AT+CIPQSEND?", mdm_ok, mdm_error, 5000);
-	SendATcommand4("AT+CIPRXGET=?", mdm_ok, mdm_error, 5000);
-	SendATcommand4("AT+CIPRXGET?", mdm_ok, mdm_error, 5000);*/
 	if (SendATcommand4(F(data_ip_protocol), mdm_cnct_ok, mdm_already_cnct, WT5) == 0) {//попробуем соединиться с сервером
 		//подождем еще
-		//if (!WaitResponse_P(NULL, mdm_already_cnct))
 		if (!WaitResponse_P(NULL, mdm_cnct_ok, mdm_already_cnct)) return false;
 	}
 	if (!WaitResponse_P(F("AT+CIPSTATUS"), mdm_cnct_ok, mdm_cnct_ok)) return false; //еще и статус проверим
-	//if (!WaitResponse_P(F(data_ip_protocol), mdm_cnct_ok)) return false; //проверяем подключение к серверу для передачи данных
-	//sprintf(aux_str, "AT+CIPSEND");
-
-	//SendATcommand4("AT+CIPRXGET?", mdm_ok, mdm_error, 5000);
-
-	//Serial.println("-----");
-
-	//delay(5000);
 	memset(out_msg_buff, '\0', sizeof(out_msg_buff));
 	memset(aux_str, '\0', sizeof(aux_str));
-	//sprintf(out_msg_buff, "#" MAC_ADDRESS "\n #T1# 26.05\n #Z1# 1 \n ##");
-	//sprintf(buf_ip_data, "=" MAC_ADDRESS "=T1=26.05=");
-	//sprintf_P(buf_ip_data, PSTR("%S%d"), gsci_msg, sms_index);
 	//переводим температуру в комнате в строку
 	dtostrf(roomtemp, 4, 2, aux_str);
 	// формат строки в сервер =26FD52AD4E93=O1S1=23.01=ON=25=2
@@ -443,7 +351,7 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	memset(str_dt, '\0', sizeof(str_dt));
 	dtostrf(htr.delta_temp, 1, 0, str_dt);
 
-
+#ifdef _TRACE
 	Serial.println("+++++++++");
 	Serial.println(str_mt);
 
@@ -451,19 +359,17 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	Serial.println(str_dt);
 
 	Serial.println("StatusChr");
+#endif	
 	//формируем строку в сервер
 	sprintf_P(out_msg_buff, fmt_http_sts_send, rest_h1, "=" MAC_ADDRESS DEVICENAME, aux_str, "=", (hf) ? ((htrflag) ? "ON" : "OFF") : "", "=",
 		str_mt, "=", str_dt, rest_h2, rest_h3, rest_h4, rest_h5, rest_h6, rest_h7);
-	//sprintf_P(out_msg_buff, PSTR("%S%s%s%s%s%s%s%s%d%s%d%S%S%S%S%S%S"), rest_h1, "=", MAC_ADDRESS, DEVICENAME, aux_str, "=", ((htrflag) ? "ON" : "OFF"),"=", 
-	//	htr.max_room_temp, "=", htr.delta_temp, rest_h2, rest_h3, rest_h4, rest_h5, rest_h6, rest_h7); //(hf) ? ((htrflag) ? "ON" : "OFF") : "", "=",
+#ifdef _TRACE
 	Serial.println("+++++++++");
 	Serial.println(out_msg_buff);
-	//Serial.println(F("ATE0"));
-	//SendATcommand4("AT+CIPSEND=?", mdm_ok, mdm_error, 1000);
+#endif	
 	//выставляем длину данных которые отправим
 	memset(aux_str, '\0', sizeof(aux_str));
 	sprintf(aux_str, "AT+CIPSEND=%d", strlen(out_msg_buff));  //Указываем модулю число  байт равное  длине данных в  буфера  out_msg_buff
-	//sprintf(aux_str, "AT+CIPSEND");
 	if (SendATcommand4Str(aux_str, angbr, mdm_error, WT5) != 1) {//если не получили приглашение ">"  
 		if (!WaitResponse_P(NULL, angbr, angbr)) { //подождем пришлашение еще надо получить приглашалку >			
 			return HardSocketReset();
@@ -495,24 +401,6 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	Serial.println("------2-");
 	Serial.println(serial_buff);
 #endif
-//if (SendATcommand4Str("AT+CIPRXGET=2,100", mdm_ok, mdm_error, WT5, WT5) != 1) {//читаем вторую часть
-//    if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) { //подждем еще чтение, вдруг долго
-//      return HardSocketReset();
-//    }
-//  }
-//  #ifdef _TRACE
-//  Serial.println("------3-");
-//  Serial.println(serial_buff);
-//#endif
-//if (SendATcommand4Str("AT+CIPRXGET=2,100", mdm_ok, mdm_error, WT5, WT5) != 1) {//читаем ответ сервера он большой
-//    if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) { //подждем еще чтение, вдруг долго
-//      return HardSocketReset();
-//    }
-//  }
-//#ifdef _TRACE
-//  Serial.println("------4-");
-//  Serial.println(serial_buff);
-//#endif
 	TCPSocketResponse(htr); //обработаем ответ сервера
 	return true;
 }
@@ -550,9 +438,7 @@ int VGSM3::TCPSocketResponse(Heater &htr) {
 			//получили команду на выключение устройства
 			htr.heat_command = RC_DEVICEOFF;
 		}
-		//memset(aux_str, '\0', sizeof(aux_str));
 		memset(reply, '\0', sizeof(reply));//очищаем строку
-		//sprintf("%s%s%s", "=", reply, "=");
 		//смотрим строку дальше, там может быть максимальная температура, 
 		//начинаем поиск с последнего значения last - =26FD52AD4E93=o1s1==ON
 		//передаем в fl и ищем =25=
@@ -563,36 +449,18 @@ int VGSM3::TCPSocketResponse(Heater &htr) {
 			int t = atoi(reply);
 			if ((t>=0) && (t<=30)) htr.max_room_temp = t;
 			memset(reply, '\0', sizeof(reply));//очищаем строку
-			//memset(aux_str, '\0', sizeof(aux_str));
-			//sprintf("%s%s%s", "=", reply, "=");
 			//смотрим строку дальше, там может быть гестерезис температуры, 
 			//начинаем поиск с последнего значения last - =26FD52AD4E93=o1s1==ON=25
 			//передаем в fl и ищем =2=
 			if (ParseTemplateChr(fl, eqv, srn_msg, reply, sizeof(reply))) {
 #ifdef _TRACE
-				Serial.println(reply);
+			Serial.println(reply);
 #endif
 				t = atoi(reply);
 				if ((t >= 0) && (t <= 10)) htr.delta_temp = t;
 			}
 		}
 	}
-
-
-	//if (strstr(serial_buff, "=" MAC_ADDRESS) == NULL) return 0; //ищем признак ответа от сервера в буфере заполненном после отправки
-	//int first = 0; 
-	//int second = 0;
-	//first = (strstr(serial_buff, "=" MAC_ADDRESS)- serial_buff);
-	//second = strlen("=" MAC_ADDRESS "=T1=");
-	//char reply[3];
-	//memset(reply, '\0', sizeof(reply));
-	////ClearMemoryBuffer(reply);
-	//int last = (strstr(serial_buff + first + second, "=")- serial_buff);
-	//int len = (last - first - 1);
-	//strncpy(reply, serial_buff + first + second, len);
-	//tcp_index = OFF;
-	//if (strstr(reply, "ON")) tcp_index = ON;
-	////if (strstr(reply, "OFF")) tcp_index = OFF;
 }
 
 /**
@@ -619,7 +487,6 @@ boolean VGSM3::CheckSMSCommand(Heater &htr, Water &wtr, boolean &hf)
 	{
 		htr.heat_command = RC_DEVICEON; //ставим флаг включения обогревателя
 		hf = true; 
-		//wtr.setCommand(RC_DEVICEON);
 #ifdef _TRACE
 		Serial.println(F("START ALL"));
 		(*_lcd).log(F("START ALL"));
@@ -629,7 +496,6 @@ boolean VGSM3::CheckSMSCommand(Heater &htr, Water &wtr, boolean &hf)
 	//start no heat
 	if (strstr_P(in_msg_buff, cmd_start_no_heat) != NULL) //start no heat
 	{
-		//wtr.setCommand(RC_DEVICEON);
 		return true;
 	}
 	//stop all
@@ -637,13 +503,11 @@ boolean VGSM3::CheckSMSCommand(Heater &htr, Water &wtr, boolean &hf)
 	{
 		htr.heat_command = RC_DEVICEOFF; //ставим флаг выключения обогревателя
 		hf = true;
-		//wtr.setCommand(RC_DEVICEOFF);
 		return true;
 	}
 	// stop no heat
 	if (strstr_P(in_msg_buff, cmd_stop_no_heat) != NULL)
 	{
-		//wtr.setCommand(RC_DEVICEOFF);
 		return true;
 	}
 	// stop only heat
@@ -663,51 +527,8 @@ boolean VGSM3::CheckSMSCommand(Heater &htr, Water &wtr, boolean &hf)
 	}
 	//set temp
 	if (strstr_P(in_msg_buff, cmd_set_temp) != NULL)  return SetDeltaTemp(htr, false, hf);
-		/*	{
-		
-
-		int t = 0;
-		if (ConvertTempChr(in_msg_buff, t))
-		{
-			if ((t >= 0) && (t <= 30)) {
-				htr.max_room_temp = t;
-				hf = true;
-				memset(out_msg_buff, '\0', sizeof(out_msg_buff));
-				//sprintf_P(out_msg_buff, PSTR("%S%d%c"), ts_msg, t, 0x1A);
-				sprintf_P(out_msg_buff, fmt_sms_temp_send, ts_msg, t, 0x1A);
-				SendSMSChr(out_msg_buff, out_phn_buff);
-				//while ((strstr_P(serial_buff, mdm_sms_send) == NULL) && (SendATcommand4(F("AT"), mdm_sms_send, mdm_error, 5000) != 1));
-				//WaitResponse_P(NULL, mdm_sms_send); //подождем ответа от модема, что смс успешно ушла
-			}
-		}
-#ifdef _TRACE
-		Serial.println(F("set temp"));
-#endif
-		return true;
-	}
-	*/
 	//set delta
 	if (strstr_P(in_msg_buff, cmd_set_delta) != NULL) return SetDeltaTemp(htr, true, hf); //проверяем наличие команды изменения дельты
-	/*{
-		int t = 0;
-		if (ConvertTempChr(in_msg_buff, t)) //отделяем часть в строке после равно
-		{
-			if ((t >= 0) && (t <= 5)) {
-				htr.setDeltaTemp(t);
-				hf = true;
-				memset(out_msg_buff, '\0', sizeof(out_msg_buff));
-				//sprintf_P(out_msg_buff, PSTR("%S%d%c"), ds_msg, t, 0x1A);
-				sprintf_P(out_msg_buff, fmt_sms_temp_send, ds_msg, t, 0x1A);
-				SendSMSChr(out_msg_buff, out_phn_buff);
-				//while ((strstr_P(serial_buff, mdm_sms_send) == NULL) && (SendATcommand4(F("AT"), mdm_sms_send, mdm_error, 5000) != 1));
-				//WaitResponse_P(NULL, mdm_sms_send); //подождем ответа от модема, что смс успешно ушла
-			}
-		}
-#ifdef _TRACE
-		Serial.println(F("set delta temp"));
-#endif
-		return true;
-	}*/
 	//set help
 	if (strstr_P(in_msg_buff, cmd_help) != NULL)
 	{
@@ -719,28 +540,7 @@ boolean VGSM3::CheckSMSCommand(Heater &htr, Water &wtr, boolean &hf)
 	}
 	return false; //unknown command
 }
-//ПРОВЕРЕНО ДОСЮДА
 
-
-/*
-void VGSM3::SendIndexSMSChr(int index)
-{
-	memset(out_msg_buff, '\0', sizeof(out_msg_buff));
-	memset(out_phn_buff, '\0', sizeof(out_phn_buff));
-
-	sprintf_P(out_msg_buff, fmt_sms_i_send, gsci_msg, index, 0x1A);
-	strcpy(out_phn_buff, PHONENUM);
-#ifdef _TRACE
-	Serial.println("6");
-	Serial.println(out_msg_buff);
-	Serial.println(out_phn_buff);
-#endif	
-	SendSMSChr(out_msg_buff, out_phn_buff);
-	//while ((strstr_P(serial_buff, mdm_sms_send) == NULL) && (SendATcommand4(F("AT"), mdm_sms_send, mdm_error, 5000) != 1));
-	//WaitResponse_P(NULL, mdm_sms_send); 
-	//delay(2000);
-}
-*/
 void VGSM3::SendSMSChr(char text[], char phone[]) {
 #ifdef _TRACE
 	Serial.println(F("Send sms char"));
@@ -758,9 +558,6 @@ void VGSM3::SendSMSChr(char text[], char phone[]) {
 	//if (SendATcommand4Str(text, angbr, mdm_error, 10000) != 1) return;
 	if (SendATcommand4Str(text, mdm_sms_send, mdm_error, WT5) != 1)//подождем ответа от модема, что смс успешно ушла
 		WaitResponse_P(NULL, mdm_sms_send, mdm_sms_send); //подождем ответа от модема, что смс успешно ушла
-	//GSMport.write(0x1A); // окончание строки и перевод каретки
-						 //GSMport.write(0x0D);
-						 //GSMport.write(0x0A);
 #ifdef _TRACE
 	Serial.print(">cmgs>");
 	Serial.println(serial_buff);
@@ -776,21 +573,15 @@ void VGSM3::StatusChr(double roomtemp, boolean wtrflag, boolean htrflag, int fre
 	str_rt[5] = 0x00;
 	Serial.println(str_rt);
 	memset(out_msg_buff, '\0', sizeof(out_msg_buff));
-	//sprintf_P(out_msg_buff, PSTR("%S%s%S%S%S%S%S%S%S%S%d%S%d%c"),
 	sprintf_P(out_msg_buff, fmt_sms_sts_send,
 		rt_msg, str_rt, sn_msg,
 		water_msg, wtrflag ? on_msg : off_msg, sn_msg,
 		htr_msg, htrflag ? on_msg : off_msg, sn_msg,
 		fr_msg, free_ram, ver_msg, VER, 0x1A);
-	//sprintf_P(out_msg_buff, PSTR("%S%s"),
-	//	rt_msg, str_rt); 
 #ifdef _TRACE
 	Serial.println(out_msg_buff);
 #endif
 	SendSMSChr(out_msg_buff, out_phn_buff);
-	//while ((strstr_P(serial_buff, mdm_sms_send) == NULL) && (SendATcommand4(F("AT"), mdm_sms_send, mdm_error, 5000) != 1));
-
-	//delay(2000);
 }
 
 /**
@@ -800,7 +591,6 @@ void VGSM3::StatusChr(double roomtemp, boolean wtrflag, boolean htrflag, int fre
 */
 boolean VGSM3::ConvertTempChr(char * command, int &t)
 {
-	//int max_while = 100 //защита на случай строки без нуля
 	int i = 0;
 	char *istr;
 	do
@@ -835,11 +625,8 @@ boolean VGSM3::SetDeltaTemp(Heater& htr, boolean delta, boolean& hf) {
 			if (delta) htr.delta_temp = t; else htr.max_room_temp = t;
 			hf = true;
 			memset(out_msg_buff, '\0', sizeof(out_msg_buff));
-			//sprintf_P(out_msg_buff, PSTR("%S%d%c"), ds_msg, t, 0x1A);
 			sprintf_P(out_msg_buff, fmt_sms_temp_send, delta?ds_msg:ts_msg, t, 0x1A);
 			SendSMSChr(out_msg_buff, out_phn_buff);
-			//while ((strstr_P(serial_buff, mdm_sms_send) == NULL) && (SendATcommand4(F("AT"), mdm_sms_send, mdm_error, 5000) != 1));
-			//WaitResponse_P(NULL, mdm_sms_send); //подождем ответа от модема, что смс успешно ушла
 		}
 	}
 #ifdef _TRACE
