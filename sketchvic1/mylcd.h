@@ -102,9 +102,13 @@ public:
   size_t print(int, int = DEC);
 
   void Init();
-  void Status(double boxtemp, double roomtemp, boolean hollflag, boolean wtrflag, boolean irrflag, boolean htrflag, boolean gsmflag);
-  void gsmInit();
+  void Status(double roomtemp, boolean wtrflag, boolean htrflag, boolean gsmflag, int maxroomt, int deltat);
+  virtual void gsmInit();
   void gsmFail();
   void gsmInitSMS();
+  void log(const __FlashStringHelper *ifsh);
+  void log(int, int = DEC);
+  void log(const char str[]);
+  void clearStr(int); //очищает строку LCD экрана. строка начинается с 0
 };
 #endif

@@ -1,9 +1,5 @@
 #include "heat.h"
 
-void Heater::setCommand(int command) 
-{
-  heat_command = command;
-}
 void Heater::OnTen(int tens) // включаем тены обогрева один, два или три
 {
   if (tens >= 1) // включаем первый тен
@@ -17,18 +13,14 @@ void Heater::OnTen(int tens) // включаем тены обогрева од�
   #endif 
   heat_started = true;
 }
+/*
+функция выставляет текущую температуру
+и пополняет массив данных общей средней температуры
+*/
 void Heater::setRoomTemp(double temp) 
 {
   room_temp = temp;
-  setTempArr(room_temp);
-}
-void Heater::setMaxRoomTemp(double temp) 
-{
-  max_room_temp = temp;
-}
-void Heater::setDeltaRoomTemp(double temp)
-{
-	delta_temp = temp;
+  setTempArr(room_temp); //аналоговый датчик не точный и приходится набирать 20 последних значений для средней температуры
 }
 
 void Heater::checkHeat() // включение и отключение обогревателя
@@ -36,19 +28,7 @@ void Heater::checkHeat() // включение и отключение обог�
   if(heat_command == RC_DEVICEON) 
   {
     Serial.println(F("heater device on command"));
-    Serial.println(room_temp);
-    //if (room_temp < 4) // меньше 4 градусов, холодно. включаем три тена
-    //{
-    //  OnTen(3);
-    //  heat_command = RC_NOTHING;
-    //  return;
-    //}
-    //if (room_temp < 16) // от 4 до 16. включаем два тена
-    //{
-    //  OnTen(2);
-    //  heat_command = RC_NOTHING;
-    //  return;
-    //}
+    Serial.println(room_temp);    
 	digitalWrite(SSR_2, HIGH); //включаем компрессор
 	heat_started2 = true;
 	heat_command = RC_NOTHING;
@@ -56,7 +36,7 @@ void Heater::checkHeat() // включение и отключение обог�
 
 	if (getTempArr() < max_room_temp) // если больше 16 но меньше выставленной температуры, то включаем подогрев одного тена
     {
-
+		//текущая температура меньше максимальной, включаем подогрев
 		digitalWrite(SSR_1, LOW); //реверсивная плата реле
 		heat_started1 = true;
 		heat_started = true;
@@ -70,40 +50,40 @@ void Heater::checkHeat() // включение и отключение обог�
 	}
 
   }
-  if(heat_command == RC_DEVICEOFF)
+  if (heat_command == RC_DEVICEOFF)
   {
-		digitalWrite(SSR_1, HIGH); // отключаем тены
-		delay(2000);
-		digitalWrite(SSR_2, LOW); // отключаем насос
-		heat_started1 = false;
-		heat_started2 = false;
-		heat_started = false; // выключаем признак работы обогревателя 
-		delta_heat = false;//добавлено после ошибки 19.05 после выключения, через какое то время был включен
-		heat_command = RC_NOTHING;
-		return;
+	  digitalWrite(SSR_1, HIGH); // отключаем тены
+	  delay(2000);
+	  digitalWrite(SSR_2, LOW); // отключаем насос
+	  heat_started1 = false;
+	  heat_started2 = false;
+	  heat_started = false; // выключаем признак работы обогревателя 
+	  delta_heat = false;//добавлено после ошибки 19.05 после выключения, через какое то время был включен
+	  heat_command = RC_NOTHING;
+	  return;
   }
   // проверка без команды на остановку нагрева
   if (heat_started) {
-    if (getTempArr() >= max_room_temp) // прогрели больше чем задана максимальная температура
-    {
-		digitalWrite(SSR_1, HIGH); // отключаем тены
-		heat_started1 = false;
-		heat_started = false; // выключаем признак работы обогревателя  
-		delta_heat = true; // включаем временный флаг проверки поддержания температуры
-		return;
-    }
+	  if (getTempArr() >= max_room_temp) // прогрели больше чем задана максимальная температура
+	  {
+		  digitalWrite(SSR_1, HIGH); // отключаем тены
+		  heat_started1 = false;
+		  heat_started = false; // выключаем признак работы обогревателя  
+		  delta_heat = true; // включаем временный флаг проверки поддержания температуры
+		  return;
+	  }
   }
   if (delta_heat) // включен временный флаг поддержания температуры 
-  { 
-    if (getTempArr() < (max_room_temp - delta_temp)) //температура остыла на два градуса
-    {
-		digitalWrite(SSR_1, LOW); // запускаем один тен
-		heat_started1 = true;
-		heat_started = true;
-		delta_heat = false;
-		return;
-    }
-  }   
+  {
+	  if (getTempArr() < (max_room_temp - delta_temp)) //температура остыла на два градуса
+	  {
+		  digitalWrite(SSR_1, LOW); // запускаем один тен
+		  heat_started1 = true;
+		  heat_started = true;
+		  delta_heat = false;
+		  return;
+	  }
+  }
 }
  
 boolean Heater::getStarted()
@@ -120,22 +100,22 @@ boolean Heater::getStarted(int tens)
 
 void Heater::Init()
 {
-  pinMode(SSR_2, OUTPUT);
-  delay(100);
-  digitalWrite(SSR_2, LOW);
-  pinMode(SSR_1, OUTPUT);
-  delay(100);
-  digitalWrite(SSR_1, HIGH);
-
- #ifdef _TRACE
-  Serial.println(F("heater init")); 
-  #endif
+	pinMode(SSR_2, OUTPUT); //компрессор обогрева 
+	delay(100);
+	digitalWrite(SSR_2, LOW);//отключаем
+	pinMode(SSR_1, OUTPUT);//реле включения тенов обогрева
+	delay(100);
+	digitalWrite(SSR_1, HIGH);//отключаем
+	delay(10000);
+#ifdef _TRACE
+	Serial.println(F("heater init"));
+#endif
 }
 void Heater::StopHeat()
 {
-      digitalWrite(SSR_1, HIGH); // отключаем тены
-      heat_started1 = false;
-      heat_started = false; // выключаем признак работы обогревателя
+	digitalWrite(SSR_1, HIGH); // отключаем тены
+	heat_started1 = false;
+	heat_started = false; // выключаем признак работы обогревателя
 }
 void Heater::setTempArr(double rt)
 { // заносим очередное значение в массив для вычисления среднего значения температуры против шума
@@ -143,6 +123,9 @@ void Heater::setTempArr(double rt)
 	room_temp_arr_index++;
 	if (room_temp_arr_index > 19) room_temp_arr_index = 0;
 }
+/**
+вычисляем среднюю температуру из 20 последних показателей датчика
+*/
 double Heater::getTempArr()
 {
 	double sum = 0;
@@ -152,6 +135,9 @@ double Heater::getTempArr()
 	}
 	return sum / 20;
 }
+/**
+функция собирает с аналогового датчика показатель температуры
+*/
 double Heater::getRoomTemp()
 {
 	analogReference(DEFAULT);
@@ -159,10 +145,5 @@ double Heater::getRoomTemp()
 	double temp = log(((10240000 / raw_adc) - 10000));
 	temp = 1 / (0.001129148 + (0.000234125 * temp) + (0.0000000876741 * temp * temp * temp));
 	temp = temp - 273.15;
-#ifdef _TRACE 
-	Serial.print(F("room temp "));
-	Serial.println(raw_adc);
-	Serial.println(temp);
-#endif
 	return temp;
 }

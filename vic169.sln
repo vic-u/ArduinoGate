@@ -5,12 +5,6 @@ VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sketchvic1", "sketchvic1\sketchvic1.vcxproj", "{CCADED94-6C90-4FCA-88E2-CE6B59A576F8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DHT", "..\..\..\..\..\Users\vic-u\Documents\Arduino\libraries\DHT\DHT.vcxitems", "{9220B441-C716-487C-ADAD-6A65BF8FF605}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoftwareSerial", "..\..\arduino-1.8.2\hardware\arduino\avr\libraries\SoftwareSerial\SoftwareSerial.vcxitems", "{115D328B-15E2-4684-9E36-8D62C5BD6B33}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Wire", "..\..\arduino-1.8.2\hardware\arduino\avr\libraries\Wire\Wire.vcxitems", "{2C67DB00-AB0A-465D-BB47-55ED2A052539}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
