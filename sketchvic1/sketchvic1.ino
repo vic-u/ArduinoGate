@@ -28,14 +28,12 @@
 #include "heat.h"
 #include "mylcd.h"
 #include "VGSM3.h"
-//#include "watchdog.h"
 /////////////////////////////////////////////////
 Water wtr; // объект класса управления водонагревателем
 Heater htr; // объект класс управления нагревателем
 MYLCD lcd(0x3F, 20, 4); //объект экран в четыре строчки
 VGSM3 vgsm3;// модуль гсм 800 л
 SSR ssr; //управление реле
-//WatchDog watchdog(WTD);
 bool firststart = true; //флаг первого прохода цикла, чтобы отправить
 bool gprsactive = false;//флаг включение канала интернета в дополнение к смс
 
@@ -50,7 +48,6 @@ void setup() {
 	wtr.Init(); // определяем реле подогрева воды на выход и отключаем его
 	htr.Init(); // определяем реле первого контура подогрева и отключаем его	
 	lcd.Init(); // включаем подсветку дисплея и ставим курсор в начало
-	//watchdog.init();
 	#ifdef _TRACE
 		Serial.println(F("Power on, arduino"));
 		lcd.log(F("Power on, arduino"));
@@ -65,10 +62,8 @@ void setup() {
 		Serial.println(F("After reset"));
 		lcd.log(F("After reset"));
 	#endif
-	//watchdog.reset();
 	// модем нам нужен обязательно а gprs доп функция
 	gprsactive = vgsm3.InitGPRS(); //дополнительно включаем инициализацию для интернета
-	// watchdog.reset();
 	htr.max_room_temp = MAXROOMTEMP; // выставляем начальную температуру отключения
 	for (int i = 0; i < 20; i++)
 	{
@@ -139,6 +134,5 @@ void loop() {
 	  Serial.println(ssr.freeRam());
 	  lcd.log(ssr.freeRam());
   #endif
-	// watchdog.reset();
 	delay(30000); //ждем 30 секунд и делаем новый опрос если не хватит на собаку, уменьшить
 }
