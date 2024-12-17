@@ -45,7 +45,7 @@ void Water::Init()
 {
   pinMode(SSR_W, OUTPUT);
   delay(500);
-  digitalWrite(SSR_W, HIGH);
+  digitalWrite(SSR_W, HIGH); //отключаем
   #ifdef _TRACE
   Serial.println(F("water init")); 
   #endif
