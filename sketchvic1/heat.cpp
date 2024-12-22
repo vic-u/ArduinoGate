@@ -104,7 +104,7 @@ void Heater::Init()
 	delay(100);
 	digitalWrite(SSR_2, LOW);//отключаем
 	pinMode(SSR_1, OUTPUT);//реле включения тенов обогрева
-	delay(100);
+	//delay(100);
 	digitalWrite(SSR_1, HIGH);//отключаем
 	delay(10000);
 #ifdef _TRACE

@@ -175,37 +175,40 @@ boolean VGSM3::ParseTemplateChr(int &from_last, const char *tmpl, const char *de
    и удаляет из памяти все смс
 */
 boolean VGSM3::InitGSM() {
-#ifdef _TRACE
-	Serial.println(F("Send Reset"));
-#endif
-	// раскомментить
-	if(SendATcommand4(F("AT+CFUN=1,1"), mdm_ok, mdm_error, 10000, 90000) != 1) return false;//команда перезагрузки модема отправляем в порт модема // ждем 10 секунд
-	// здесь надо добавить ожидания до call ready
-	if (SendATcommand4(F("AT"), mdm_ok, mdm_error, WT5) != 1) return false;//первая команда в модем, для проверки, что оклемался после 
-	//перезагрузки// ждем 10 секунд чтобы все строки модем выдал в буфер
-	if (SendATcommand4(F("AT+CPMS= \"MT\""), mdm_ok, mdm_error, WT5) != 1) return false; // переключаем хранилище смс на сим карту и телефон
-	DeleteAllSMS();
-	return true;
+  #ifdef _TRACE
+	  Serial.println(F("Send Reset"));
+  #endif
+	  // раскомментить todo зачем это  с собакой
+	  pinMode(GSM_R, OUTPUT); //реле, через которое включаем модем 
+	  delay(100);
+	  digitalWrite(GSM_R, HIGH);//включаем
+	  delay(20000);
+	  // здесь надо добавить ожидания до call ready
+	  if (SendATcommand4(F("AT"), mdm_ok, mdm_error, WT5) != 1) return false;//первая команда в модем, для проверки, что оклемался после 
+	  //перезагрузки// ждем 10 секунд чтобы все строки модем выдал в буфер
+	  if (SendATcommand4(F("AT+CPMS= \"ME\""), mdm_ok, mdm_error, WT5) != 1) return false; // переключаем хранилище смс на сим карту и телефон
+	  DeleteAllSMS();
+	  return true;
 }
 /**
 функция отправляет приветственное сообщение пристарте или перезагрузке
 */
 void VGSM3::SendInitSMSChr()
 {
-#ifdef _TRACE
-	Serial.println(F("Init SMS Send"));
-#endif	
+  #ifdef _TRACE
+	  Serial.println(F("Init SMS Send"));
+  #endif	
 
 	memset(out_msg_buff, '\0', sizeof(out_msg_buff));
 	memset(out_phn_buff, '\0', sizeof(out_phn_buff));
 
 	sprintf_P(out_msg_buff, PSTR("%S%c"), help_msg, 0x1A);
 	strcpy(out_phn_buff, PHONENUM);
-#ifdef _TRACE
-	Serial.println("5");
-	Serial.println(out_msg_buff);
-	Serial.println(out_phn_buff);
-#endif	
+  #ifdef _TRACE
+	  Serial.println("5");
+	  Serial.println(out_msg_buff);
+	  Serial.println(out_phn_buff);
+  #endif	
 	SendSMSChr(out_msg_buff, out_phn_buff);
 }
 /**
@@ -351,22 +354,22 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 	memset(str_dt, '\0', sizeof(str_dt));
 	dtostrf(htr.delta_temp, 1, 0, str_dt);
 
-#ifdef _TRACE
-	Serial.println("+++++++++");
-	Serial.println(str_mt);
+  #ifdef _TRACE
+    Serial.println("+++++++++");
+    Serial.println(str_mt);
 
-	Serial.println("+++++++++");
-	Serial.println(str_dt);
+    Serial.println("+++++++++");
+    Serial.println(str_dt);
 
-	Serial.println("StatusChr");
-#endif	
+    Serial.println("StatusChr");
+  #endif	
 	//формируем строку в сервер
 	sprintf_P(out_msg_buff, fmt_http_sts_send, rest_h1, "=" MAC_ADDRESS DEVICENAME, aux_str, "=", (hf) ? ((htrflag) ? "ON" : "OFF") : "", "=",
 		str_mt, "=", str_dt, rest_h2, rest_h3, rest_h4, rest_h5, rest_h6, rest_h7);
-#ifdef _TRACE
-	Serial.println("+++++++++");
-	Serial.println(out_msg_buff);
-#endif	
+  #ifdef _TRACE
+	  Serial.println("+++++++++");
+	  Serial.println(out_msg_buff);
+  #endif	
 	//выставляем длину данных которые отправим
 	memset(aux_str, '\0', sizeof(aux_str));
 	sprintf(aux_str, "AT+CIPSEND=%d", strlen(out_msg_buff));  //Указываем модулю число  байт равное  длине данных в  буфера  out_msg_buff
@@ -388,19 +391,19 @@ boolean  VGSM3::TCPSendData2(double roomtemp, boolean htrflag, Heater& htr, bool
 			return HardSocketReset();
 		}
 	}
-#ifdef _TRACE
-	Serial.println("------1-");
-	Serial.println(serial_buff);
-#endif
+  #ifdef _TRACE
+	  Serial.println("------1-");
+	  Serial.println(serial_buff);
+  #endif
 	if (SendATcommand4Str("AT+CIPRXGET=2,200", mdm_ok, mdm_error, 3000, 500) != 1) {//читаем вторую часть
 		if (!WaitResponse_P(NULL, mdm_ok, mdm_ok)) { //подждем еще чтение, вдруг долго
 			return HardSocketReset();
 		}
 	}
-#ifdef _TRACE
-	Serial.println("------2-");
-	Serial.println(serial_buff);
-#endif
+  #ifdef _TRACE
+	  Serial.println("------2-");
+	  Serial.println(serial_buff);
+  #endif
 	TCPSocketResponse(htr); //обработаем ответ сервера
 	return true;
 }
