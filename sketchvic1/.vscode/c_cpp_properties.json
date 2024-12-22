@@ -3,7 +3,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "c:/Users/vic-u/AppData/Local/Arduino15/packages/**"
             ],
             "defines": [
                 "_DEBUG",
